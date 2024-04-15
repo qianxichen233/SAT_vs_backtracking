@@ -38,17 +38,17 @@ Then for package **bar**, we have three different versions:
 
 -   **bar** version 3.0 depends on:
 
--   package **qux** with version >=2.0
+    -   package **qux** with version >=2.0
 
--   package **baz** with version <2.0
+    -   package **baz** with version <2.0
 
 -   **bar** version 2.0 depends on:
 
--   package **qux** with version <2.0
+    -   package **qux** with version <2.0
 
 -   **bar** version 1.0 depends on:
 
--   package **qux** with any version
+    -   package **qux** with any version
 
 We try to built our **project**, so let's try to use **bar** with version 3.0 first. However, since **bar** 3.0 want **baz** <2.0, but our project want **baz**>=2.0, we would eventually fail to build it.
 
@@ -182,37 +182,37 @@ Then for package **bar**, we have three different versions:
 
 -   **bar** version 3.0 depends on:
 
--   package **qux** with version >=2.0
+    -   package **qux** with version >=2.0
 
--   package **baz** with version <2.0
+    -   package **baz** with version <2.0
 
 -   **bar** version 2.0 depends on:
 
--   package **qux** with version <2.0
+    -   package **qux** with version <2.0
 
 -   **bar** version 1.0 depends on:
 
--   package **qux** with any version
+    -   package **qux** with any version
 
 We can convert it into the following boolean equation (notice that A -> B = NOT A OR B):
 
-VERSION(project)=
+    VERSION(project)=
 
-((bar_3.0 -> ((qux_2.0 OR qux_2.1 OR qux_higher-version) AND (baz_1.9 OR baz_1.8 OR baz_lower-version)))
+    ((bar_3.0 -> ((qux_2.0 OR qux_2.1 OR qux_higher-version) AND (baz_1.9 OR baz_1.8 OR baz_lower-version)))
 
-AND (bar_2.0 -> (qux_1.9 OR qux_1.8 OR qux_lower-version))
+    AND (bar_2.0 -> (qux_1.9 OR qux_1.8 OR qux_lower-version))
 
-AND (bar_1.0 -> (qux_2.1 OR qux_1.9 OR qux_any-version)))
+    AND (bar_1.0 -> (qux_2.1 OR qux_1.9 OR qux_any-version)))
 
-AND (baz_2.0 OR baz_2.1 OR baz_higher-version)
+    AND (baz_2.0 OR baz_2.1 OR baz_higher-version)
 
-AND (qux_2.0 OR qux_2.1 OR qux_higher-version)
+    AND (qux_2.0 OR qux_2.1 OR qux_higher-version)
 
 This boolean equation specified the dependency relationship between the packages. For example, if package **bar** with version 3.0 is chosen (bar_3.0 -> ), then its sub dependencies should be installed, i.e. package **qux** with version >=2.0 (qux_2.0 OR qux_2.1 OR qux_higher-version) and package **baz** with version <2.0 (baz_1.9 OR baz_1.8 OR baz_lower-version).
 
 However, a dependency relationship alone is not enough. We also want to have **exact one** version of the package being installed at the same time. Therefore, we could also add boolean equations to apply this restriction:
 
-(NOT bar_0.3 OR NOT bar_0.2) AND (NOT bar_0.3 OR NOT bar_0.1) AND (NOT bar_0.2 OR NOT bar_0.1)
+    (NOT bar_0.3 OR NOT bar_0.2) AND (NOT bar_0.3 OR NOT bar_0.1) AND (NOT bar_0.2 OR NOT bar_0.1)
 
 This boolean statement only allows one version of **bar** exist, otherwise the statement will not be **TRUE**. Similar boolean statement could be constructed for package **baz** and **qux**.
 
@@ -247,13 +247,13 @@ After this point is where the converting process starts. And we have already see
 
 So how can we achieve the feature? Anaconda used a very smart approach. They assigned a weight for each version of the package. The key point is that the newer the version is, the smaller the weight will be assigned to the package. For example, **bar** version 3.0, the newest version of **bar**, will be assigned a weight of **0**. **bar** version 2.0 will be given the weight of **1**, and the oldest version 1.0 will be given the weight of **2**. Then we apply the same approach to all of the packages, and then add all of these weighted version together:
 
-Version Equation = (0 _ bar_3.0 + 1 _ bar_2.0 + 2 _ bar_1.0) + (0 _ baz_2.1 + 1 _ baz_2.0 + ...) + (0 _ qux_2.5 + 1 \* qux_2.4 + ...)
+    Version Equation = (0 _ bar_3.0 + 1 _ bar*2.0 + 2 * bar*1.0) + (0 * baz*2.1 + 1 * baz*2.0 + ...) + (0 * qux_2.5 + 1 \* qux_2.4 + ...)
 
 Then, the task of making the install package version as new as possible becomes minimizing the **Version Equation**.
 
 This **Version Equation** is actually something called **Pseudo-Boolean SAT**, which looks like this in general:
 
-C0 _ p0 + C1 _ p1 + . . . + Cn-1 \* pn-1 ≥ Cn
+    C0 _ p0 + C1 _ p1 + . . . + Cn-1 \* pn-1 ≥ Cn
 
 It turns out that there is a systematic way to convert any Pseudo-Boolean SAT into a set of normal SAT expressions ([read more here](https://content.iospress.com/download/journal-on-satisfiability-boolean-modeling-and-computation/sat190021?id=journal-on-satisfiability-boolean-modeling-and-computation%2Fsat190021)), which means we could essentially convert our **Version Equation** into another part of SAT expressions, together with our SAT expressions for dependency relationship expressions.
 
@@ -287,7 +287,7 @@ Before we look into these two classic optimizations, let's first have a quick vi
 
 CNF form is a standardized way to represent the boolean expressions used in SAT. It is very simple to understand, and below is a general CNF format boolean equation:
 
-(an expression only contains OR or NOT) AND (an expression only contains OR or NOT) AND …
+    (an expression only contains OR or NOT) AND (an expression only contains OR or NOT) AND …
 
 CNF form is basically transforming and splitting the original boolean equations into a set of sub-expressions. In each sub-expression, only OR or NOT exists. Then AND each sub-expressions together and we get the CNF formatted boolean expression. It is interesting that every boolean equation could be transformed into this CNF form.
 
@@ -297,8 +297,8 @@ Then, in order to solve the SAT problem, we just need to make sure each sub-expr
 
 Unit propagation is a trick to reduce the search tree while trying the boolean variables when solving SAT problems. Let's consider the following sub-expressions that is part of a SAT problem in CNF form:
 
-(A OR B)
-(NOT B OR C)
+    (A OR B)
+    (NOT B OR C)
 
 When we are trying solutions with A set to False, we know that we must assign B to TRUE without trying, otherwise (A OR B) can not be TRUE. And once we assign B to TRUE, we know that C has to be FALSE due to the same reason. And by applying this trick, we avoid the cost of searching unnecessary solution space.
 
@@ -306,7 +306,7 @@ When we are trying solutions with A set to False, we know that we must assign B 
 
 Pure literal elimination is another interesting optimization used in DPLL. Consider the following boolean equation:
 
-(A OR NOT B) AND (A OR B OR NOT C) AND (NOT B OR NOT C)
+    (A OR NOT B) AND (A OR B OR NOT C) AND (NOT B OR NOT C)
 
 By observing, we can see that A always appears without NOT in front of it, so we can assign TRUE to A directly. Similar to C, where we can assign FALSE directly.
 
