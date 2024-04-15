@@ -1,5 +1,7 @@
 # The Unpredictability of SAT Solver-Based Dependency Resolution
 
+TL;DR: In this blog, I did some experiments with anaconda and pip and tried to understand the source of the unpredictability of dependency resolution result from anaconda package manager. We should take speical care about the exact versioned dependency tree across your development, testing, and production environments, especially when you are using SAT Solver based dependency resolution algorithm.
+
 ## Introduction
 
 Dependency resolution is something most programmers used frequently day to day. When you type `npm install`, `cargo add`, `conda install`, or whatever commands used by other package managers to manage dependencies, you quickly get the packages you want to install and you are happy. As for how package managers really did behind the scene to figure out what version of packages should be installed, who cares.
