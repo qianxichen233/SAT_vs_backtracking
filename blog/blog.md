@@ -14,7 +14,9 @@ So when you are trying to develop some softwares, whether it is an application, 
 
 Besides, each library usually asks for its dependency to be installed with a specific range of versions. Here is an example of dependency tree of a commonly used library in python, numpy:
 
-![numpy dependencies](images/numpy_dependencies.png)
+<p align="center">
+    <img src="images/numpy_dependencies.png" width="300"/>
+</p>
 
 As we can see, when we are installing numpy, we are actually installed a lot more packages than numpy: blas, libcxx, libopenblas, etc. And if we observe it clearly, we can see that after each installed package, there is an constraint behind it. For package libcxx, it is required to be installed with version >= 14.0.6. For package openssl, it is required to be installed with version >=1.1.1t and <1.1.2a. There are some other types of contraints here as well. For example, 5.\* means any version that starts with 5, \* means any version, and == means exact version.
 
@@ -86,7 +88,9 @@ Now let's try to install these packages together with anaconda and see what resu
 
 `conda install --use-local foo bar baz qux a b c d e`
 
-![anaconda result 1](images/anaconda_result_1.png)
+<p align="center">
+    <img src="images/anaconda_result_1.png" width="500"/>
+</p>
 
 Ok, cool, anaconda found a solution to our dependencies, non-surprisingly.
 
@@ -102,7 +106,9 @@ Let's add our new package "dumb" into our dependencies and try to install again.
 
 `conda install --use-local foo bar baz qux a b c d e dumb`
 
-![anaconda result 2](images/anaconda_result_2.png)
+<p align="center">
+    <img src="images/anaconda_result_2.png" width="500"/>
+</p>
 
 Hmmm, looks like anaconda decided to give us a different resolution result. Specifically, the package version **b** and package version **qux** have changed. **But is this really expected?** Since we just added a package that has no conflict with current dependencies at all, and we got a different dependency resolution result. What if this behavior happened again in our real life projects? How could that cause issues?
 
@@ -118,13 +124,17 @@ Different dependency resolution result means different version of some package g
 
 When your software behaves differently, in best scenario, your code will not be able to build or run, and you can notice it and fix it immediately.
 
-![issue 1](images/issue_1.png)
+<p align="center">
+    <img src="images/issue_1.png" width="400"/>
+</p>
 
 In the example above, the code will run successfully with Flask==2.2.5, but will get an ImportError with Flask==2.2.3.
 
 However, things aren't always come with best case. Sometimes, different version of the package will not cause the code to fail to build. But instead, the code is running normally, but with different behavior.
 
-![issue 2](images/issue_2.png)
+<p align="center">
+    <img src="images/issue_2.png" width="400"/>
+</p>
 
 In this example, if we run the code with either numpy==1.20.0 or numpy==1.19.5, there is no error at all. However, their output is different. With numpy==1.19.5, the output is `123 processed!`. However, with numpy==1.20.0, the if statement will never be evaluated to be true, and we get a different output `123`.
 
@@ -314,11 +324,15 @@ Well, why not just perform another experiment on PicoSAT.
 
 I downloaded a SAT problem with 250 boolean variables and 1065 sub-expressions. And let PicoSAT to solve. Below is the result I get:
 
-![picosat 1](images/picosat_1.png)
+<p align="center">
+    <img src="images/picosat_1.png" width="500"/>
+</p>
 
 Now let's play the same game. In the output, we see there is an **-1**, which means the **1st** boolean variable is assigned as **FALSE** (Number with no negative sign means that variable should be assigned **TRUE**). So let's add this result back to our SAT problem, like we are explicitly telling PicoSAT that the 1st variable is **FALSE**.
 
-![picosat 2](images/picosat_2.png)
+<p align="center">
+    <img src="images/picosat_2.png" width="500"/>
+</p>
 
 And we get a different result, just like what anaconda did for us in terms of dependency resolution result.
 
@@ -326,7 +340,9 @@ This is not surprising at all since this is how SAT Solver works. There are just
 
 And what's even worse, there is an interesting optimization used in PicoSAT called **Random Restart**. And by the name, you might already know what is going on here: they are using a **random number generator** inside of the algorithm to randomly jump on the search tree.
 
-![random restart](images/random_restart.png)
+<p align="center">
+    <img src="images/random_restart.png" width="400"/>
+</p>
 
 The above code snippet is the exact random number generator used in PicoSAT.
 
@@ -348,9 +364,10 @@ Let's apply the same experiment with pip, which uses **backtracking algorithm** 
 
 Same packages with same dependency relationship. With `pip install -i http://localhost:8080 foo bar baz qux a b c d e`, I got this result:
 
-![pip result 1.1](images/pip_result_1.1.png)
-
-![pip result 1.2](images/pip_result_1.2.png)
+<p align="center">
+    <img src="images/pip_result_1.1.png" width="250"/>
+    <img src="images/pip_result_1.2.png" width="500"/>
+</p>
 
 Let's add our **dumb** package. Since pip gives a little bit different result than anaconda, specifically, the version of **foo** is 2.0 here. So the dependencies of **dumb** looks like this:
 
@@ -360,9 +377,10 @@ Package **dumb**:
 
 Then we uninstall the packages and install again `pip install -i http://localhost:8080 foo bar baz qux a b c d e dumb`
 
-![pip result 2.1](images/pip_result_2.1.png)
-
-![pip result 2.2](images/pip_result_2.2.png)
+<p align="center">
+    <img src="images/pip_result_2.1.png" width="250"/>
+    <img src="images/pip_result_2.2.png" width="500"/>
+</p>
 
 And we get an exactly the same dependency resolution result!
 
